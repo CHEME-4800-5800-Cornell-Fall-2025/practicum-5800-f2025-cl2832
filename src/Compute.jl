@@ -1,47 +1,25 @@
 #throw(ErrorException("Oppps! No methods defined in src/Compute.jl. What should you do here?"))
 
-"""
-    _energy(W::Array{T,2}, α::Array{T,1}, s::Array{T,1}) -> T where T <: Number
-"""
 function _energy(s::Array{<: Number,1}, W::Array{<:Number,2}, b::Array{<:Number,1})::Float32
     
     # initialize -
-    tmp_energy_state = 0.0;
+    energy_state = 0.0;
     number_of_states = length(s);
 
     # main loop -
-    tmp = transpose(b)*s; # alias for the bias term
+    bias = transpose(b)*s; # alias for the bias term
     for i ∈ 1:number_of_states
         for j ∈ 1:number_of_states
-            tmp_energy_state += W[i,j]*s[i]*s[j];
+            energy_state += -(1/2)*W[i,j]*s[i]*s[j];
         end
     end
-    energy_state = -(1/2)*tmp_energy_state + tmp;
-
+    energy_state += bias; # add bias term
     # return -
     return energy_state;
 end
 
-"""
-    recover(model::MyClassicalHopfieldNetworkModel, sₒ::Array{Int32,1};
-        maxiterations::Int = 1000, patience::Union{Int,Nothing} = nothing,
-        miniterations_before_convergence::Union{Int,Nothing} = nothing) -> Tuple{Dict{Int64, Array{Int32,1}}, Dict{Int64, Float32}}
+### 從這邊開始寫你的 code ###
 
-Run asynchronous Hopfield updates starting from `sₒ` until convergence (or `maxiterations`) and
-collect the visited states and their energies.
-
-### Arguments
-- `model::MyClassicalHopfieldNetworkModel`: a Hopfield network model.
-- `sₒ::Array{Int32,1}`: initial state (±1 spins encoded as `Int32`).
-- `maxiterations::Int`: maximum number of updates.
-- `patience::Union{Int,Nothing}`: number of consecutive identical states required to declare convergence. If `nothing`, defaults to `max(5, round(Int, 0.01*N))` where `N` is number of pixels.
-- `miniterations_before_convergence::Union{Int,Nothing}`: minimum updates to run before checking convergence. If `nothing`, defaults to `patience`.
-
-### Returns
-Tuple of dictionaries:
-- `frames::Dict{Int64, Array{Int32,1}}`: state at each iteration (starting at key 0).
-- `energydictionary::Dict{Int64, Float32}`: energy at each iteration (starting at key 0).
-"""
 function recover(model::MyClassicalHopfieldNetworkModel, sₒ::Array{Int32,1}, trueenergyvalue::Float32;
     maxiterations::Int = 1000, patience::Union{Int,Nothing} = nothing,
     miniterations_before_convergence::Union{Int,Nothing} = nothing)::Tuple{Dict{Int64, Array{Int32,1}}, Dict{Int64, Float32}}
@@ -118,18 +96,8 @@ function recover(model::MyClassicalHopfieldNetworkModel, sₒ::Array{Int32,1}, t
     frames, energydictionary
 end
 
+### 從這邊開始寫你的 code ###
 
-"""
-    decode(simulationstate::Array{T,1}; number_of_rows::Int64 = 28, number_of_cols::Int64 = 28) -> Array{T,2}
-
-Reshape a flattened Hopfield state vector into an image matrix, mapping spins to pixel intensities.
-
-- `simulationstate`: length `number_of_rows * number_of_cols` vector containing ±1 spin values.
-- `number_of_rows`: output image height; defaults to 28 for MNIST-style digits.
-- `number_of_cols`: output image width; defaults to 28 for MNIST-style digits.
-
-Returns a `number_of_rows x number_of_cols` `Int32` array where `-1` becomes `0` and any other value becomes `1`. A `BoundsError` will be thrown if the provided vector is shorter than the requested shape.
-"""
 function decode(simulationstate::Array{T,1}; 
     number_of_rows::Int64 = 28, number_of_cols::Int64 = 28)::Array{T,2} where T <: Number
     

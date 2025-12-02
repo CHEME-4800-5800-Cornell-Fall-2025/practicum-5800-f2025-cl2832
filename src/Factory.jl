@@ -19,6 +19,7 @@ function build(modeltype::Type{MyClassicalHopfieldNetworkModel}, data::NamedTupl
                 Y[i,j] = y[i]*y[j]
                 else
                 Y[i,j] = 0.0f0; # no self-coupling
+                end
             end
         end
         W += Y; # update the W -
